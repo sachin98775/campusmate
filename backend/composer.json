@@ -1,0 +1,17 @@
+{
+  "name": "campusmate/api",
+  "description": "CampusMate - Educational Management System API",
+  "version": "1.0.0",
+  "require": {
+    "php": "^8.0",
+    "ext-mongodb": "*",
+    "mongodb/mongodb": "1.19",
+    "firebase/php-jwt": "^6.0",
+    "vlucas/phpdotenv": "^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "CampusMate\\": "src/"
+    }
+  }
+}

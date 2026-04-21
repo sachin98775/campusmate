@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Teacher API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Debug Teacher Subjects API</h1>
+    
+    <div class="section">
+        <h2>Step 1: Check Teacher Data</h2>
+        <button onclick="checkTeacherData()">Check Teacher Data</button>
+        <div id="teacherResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Step 2: Test Subjects API</h2>
+        <button onclick="testSubjectsAPI()">Test Subjects API</button>
+        <div id="subjectsResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Step 3: Simulate Dashboard Load</h2>
+        <button onclick="simulateDashboard()">Simulate Dashboard</button>
+        <div id="dashboardResult" class="result"></div>
+    </div>
+
+    <script>
+        // Simulate the login data
+        const mockTeacherData = {
+            id: 'temp-teacher-KCPT001',
+            name: 'Teacher KCPT001',
+            teacherKey: 'KCPT001',
+            role: 'teacher',
+            phone: '9876543210'
+        };
+        
+        function checkTeacherData() {
+            const result = document.getElementById('teacherResult');
+            result.innerHTML = `
+                <h3>Teacher Data:</h3>
+                <pre>${JSON.stringify(mockTeacherData, null, 2)}</pre>
+                <p>Teacher ID: ${mockTeacherData.id}</p>
+            `;
+        }
+        
+        async function testSubjectsAPI() {
+            const result = document.getElementById('subjectsResult');
+            result.innerHTML = '<p>Testing API...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/teacher/subjects?teacherId=temp-teacher-KCPT001');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>API Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p class="${data.success ? 'success' : 'error'}">
+                        Success: ${data.success}<br>
+                        Subjects found: ${data.subjects ? data.subjects.length : 0}
+                    </p>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function simulateDashboard() {
+            const result = document.getElementById('dashboardResult');
+            result.innerHTML = '<p>Simulating dashboard load...</p>';
+            
+            try {
+                // Simulate what the dashboard does
+                const response = await fetch('http://localhost:8000/api/teacher/subjects?teacherId=' + mockTeacherData.id);
+                const data = await response.json();
+                
+                const subjects = data?.subjects || [];
+                const assignedSubjects = subjects.map((s) => ({
+                    id: `${s.classId}-${s.id}`,
+                    subjectId: s.id,
+                    classId: s.classId,
+                    className: s.className,
+                    subjectName: s.name,
+                    totalStudents: s.students || 0,
+                }));
+                
+                result.innerHTML = `
+                    <h3>Dashboard Simulation Result:</h3>
+                    <p>Raw API Response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p>Mapped Subjects:</p>
+                    <pre>${JSON.stringify(assignedSubjects, null, 2)}</pre>
+                    <p class="${assignedSubjects.length > 0 ? 'success' : 'error'}">
+                        Subjects to display: ${assignedSubjects.length}
+                    </p>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

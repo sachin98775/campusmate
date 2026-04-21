@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; background: #e9ecef; border: 1px solid #ddd; cursor: pointer; }
+        .tab.active { background: #007bff; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Direct Login Test (Bypasses Frontend)</h2>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('teacher')">Teacher Login</div>
+            <div class="tab" onclick="showTab('student')">Student Login</div>
+        </div>
+        
+        <!-- Teacher Login Form -->
+        <div id="teacher-tab" class="tab-content active">
+            <div class="form-group">
+                <label>Teacher Key</label>
+                <input type="text" id="teacherKey" value="KCPT001" placeholder="Enter teacher key">
+            </div>
+            <button onclick="loginTeacher()">Login as Teacher</button>
+        </div>
+        
+        <!-- Student Login Form -->
+        <div id="student-tab" class="tab-content">
+            <div class="form-group">
+                <label>Roll Number</label>
+                <input type="text" id="rollNumber" value="BCA001" placeholder="Enter roll number">
+            </div>
+            <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="dob" value="2000-01-15">
+            </div>
+            <button onclick="loginStudent()">Login as Student</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        async function loginTeacher() {
+            const result = document.getElementById('result');
+            const teacherKey = document.getElementById('teacherKey').value;
+            
+            result.innerHTML = '<p>Logging in as teacher...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/temp-login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        role: 'teacher',
+                        teacherKey: teacherKey
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Teacher Login Successful!</h3>
+                            <p><strong>Name:</strong> ${data.user.name}</p>
+                            <p><strong>Role:</strong> ${data.user.role}</p>
+                            <p><strong>Teacher Key:</strong> ${data.user.teacherKey}</p>
+                            <p><strong>Token:</strong> ${data.token}</p>
+                            <p><em>Login works! The issue is in your frontend-backend communication.</em></p>
+                        </div>
+                    `;
+                    
+                    // Store data for testing
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('teacherData', JSON.stringify(data.user));
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Teacher Login Failed</h3>
+                            <p>${data.message || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                        <p><em>This confirms the backend is working but frontend has connectivity issues.</em></p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function loginStudent() {
+            const result = document.getElementById('result');
+            const rollNumber = document.getElementById('rollNumber').value;
+            const dob = document.getElementById('dob').value;
+            
+            result.innerHTML = '<p>Logging in as student...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/temp-login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        role: 'student',
+                        roll_number: rollNumber,
+                        dob: dob
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Student Login Successful!</h3>
+                            <p><strong>Name:</strong> ${data.user.name}</p>
+                            <p><strong>Role:</strong> ${data.user.role}</p>
+                            <p><strong>Roll Number:</strong> ${data.user.roll_number}</p>
+                            <p><strong>Token:</strong> ${data.token}</p>
+                            <p><em>Login works! The issue is in your frontend-backend communication.</em></p>
+                        </div>
+                    `;
+                    
+                    // Store data for testing
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userData', JSON.stringify(data.user));
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Student Login Failed</h3>
+                            <p>${data.message || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                        <p><em>This confirms the backend is working but frontend has connectivity issues.</em></p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

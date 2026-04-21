@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connectivity Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>API Connectivity Test</h1>
+    
+    <div class="test">
+        <h2>Test 1: Basic API Reachability</h2>
+        <button onclick="testBasicReachability()">Test Basic Reachability</button>
+        <div id="basicResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h2>Test 2: Teacher Login API</h2>
+        <button onclick="testTeacherLogin()">Test Teacher Login</button>
+        <div id="teacherResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h2>Test 3: Student Login API</h2>
+        <button onclick="testStudentLogin()">Test Student Login</button>
+        <div id="studentResult" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h2>Test 4: Mock API (if real fails)</h2>
+        <button onclick="testMockAPI()">Test Mock API</button>
+        <div id="mockResult" class="result"></div>
+    </div>
+
+    <script>
+        async function testBasicReachability() {
+            const result = document.getElementById('basicResult');
+            result.innerHTML = '<p>Testing basic API reachability...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/temp-login.php');
+                result.innerHTML = `
+                    <h3>Basic Reachability:</h3>
+                    <p>Status: ${response.status} ${response.statusText}</p>
+                    <p class="${response.ok ? 'success' : 'error'}">
+                        ${response.ok ? '✅ API is reachable' : '❌ API not reachable'}
+                    </p>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testTeacherLogin() {
+            const result = document.getElementById('teacherResult');
+            result.innerHTML = '<p>Testing teacher login...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/temp-login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        role: 'teacher',
+                        teacherKey: 'KCPT001'
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `
+                    <h3>Teacher Login Test:</h3>
+                    <p>Status: ${response.status} ${response.statusText}</p>
+                    <p class="${data.success ? 'success' : 'error'}">
+                        ${data.success ? '✅ Teacher login works' : '❌ Teacher login failed'}
+                    </p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testStudentLogin() {
+            const result = document.getElementById('studentResult');
+            result.innerHTML = '<p>Testing student login...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/temp-login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        role: 'student',
+                        roll_number: 'BCA001',
+                        dob: '2000-01-15'
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `
+                    <h3>Student Login Test:</h3>
+                    <p>Status: ${response.status} ${response.statusText}</p>
+                    <p class="${data.success ? 'success' : 'error'}">
+                        ${data.success ? '✅ Student login works' : '❌ Student login failed'}
+                    </p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testMockAPI() {
+            const result = document.getElementById('mockResult');
+            result.innerHTML = '<p>Testing mock API...</p>';
+            
+            try {
+                // Simulate what frontend does
+                const mockData = {
+                    success: true,
+                    subjects: [
+                        {
+                            id: 'MATH101',
+                            name: 'Mathematics',
+                            classId: '1',
+                            className: 'BCA 1A',
+                            students: 5
+                        }
+                    ]
+                };
+                
+                result.innerHTML = `
+                    <h3>Mock API Test:</h3>
+                    <p class="success">✅ Mock API works independently</p>
+                    <pre>${JSON.stringify(mockData, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
