@@ -25,8 +25,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# Run composer install
-RUN composer install --no-dev --no-interaction --optimize-autoloader
+# Allow Composer to run as root
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# Run composer install ignoring strict platform requirement checks
+RUN composer install --no-dev --no-interaction --optimize-autoloader --ignore-platform-reqs
 
 # Expose port (Railway overrides this with $PORT but it's good practice)
 EXPOSE 80
