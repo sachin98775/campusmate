@@ -41,11 +41,7 @@ class ApiService {
 
   // Generic request method with fallback to mock data
   async request(endpoint, options = {}) {
-    // Special handling for temp-login.php - always use real API
-    if (endpoint === '/temp-login.php') {
-      return await this.tryRealApi(endpoint, options);
-    }
-
+    // Special handling for legacy temp-login removed
     // If mock mode is enabled, use mock API directly
     if (this.useMock) {
       console.log(`Using mock API for: ${endpoint}`);
@@ -173,8 +169,7 @@ class ApiService {
   // Authentication methods
   async login(credentials) {
     try {
-      // Try the real backend first
-      const response = await fetch(`${API_BASE_URL}/temp-login.php`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +178,13 @@ class ApiService {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch(e) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -194,8 +195,7 @@ class ApiService {
 
       return data;
     } catch (error) {
-      // Backend is offline or unreachable — fall back to mock API
-      console.warn('Backend unavailable, falling back to mock login:', error.message);
+      console.warn('Backend login failed, attempting fallback to mock login:', error.message);
       const data = await this.tryMockApi('/auth/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
