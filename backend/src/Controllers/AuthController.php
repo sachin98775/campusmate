@@ -86,14 +86,31 @@ class AuthController {
         ]);
 
         if (!$student) {
-            throw new \Exception('Invalid student credentials');
+            throw new \Exception('Invalid student credentials. Check your roll number and date of birth.');
+        }
+
+        // Fetch class name for the dashboard
+        $classId = $student['class_id'] ?? '';
+        $className = '';
+        if ($classId !== '') {
+            try {
+                $db = Database::getInstance()->getDatabase();
+                $classes = $db->selectCollection('classes');
+                $class = $classes->findOne(['_id' => new \MongoDB\BSON\ObjectId($classId)]);
+                $className = $class['name'] ?? '';
+            } catch (\Exception $e) {
+                // Class lookup failure is non-fatal
+            }
         }
 
         return $this->buildAuthResponse([
             'id' => (string) $student['_id'],
             'name' => $student['name'],
             'roll_number' => $student['roll_number'],
-            'class_id' => $student['class_id'] ?? '',
+            'class_id' => $classId,
+            'class_name' => $className,
+            'email' => $student['email'] ?? '',
+            'phone' => $student['phone'] ?? '',
             'role' => 'student'
         ]);
     }
